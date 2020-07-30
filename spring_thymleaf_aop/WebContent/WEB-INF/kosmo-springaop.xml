@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:mybatis-spring="http://mybatis.org/schema/mybatis-spring"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:mvc="http://www.springframework.org/schema/mvc"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="http://mybatis.org/schema/mybatis-spring http://mybatis.org/schema/mybatis-spring.xsd
+		http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+		http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd
+		http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd">
+<context:component-scan base-package="mvc"/>
+<!-- 적혀잇는 패키지들에서 해당되는 어노테이션들을 스프링컨테이너로 빈등록을 해준다  -->
+
+
+<mvc:annotation-driven/>
+<mvc:resources location="/resources/" mapping="/resources/**"/>
+
+
+
+<!-- DataSource설정 -->
+<bean id="dataSource" class="org.springframework.jndi.JndiObjectFactoryBean">
+<property name="jndiName" value="java:comp/env/jdbc/myoracle"></property>
+</bean>
+<!-- MyBatis설정 -->
+<bean id="factoryBean" class="org.mybatis.spring.SqlSessionFactoryBean">
+<property name="dataSource" ref="dataSource"/>
+<property name="configLocation" value="classpath:mvc/config/config.xml"></property>
+<property name="mapperLocations" value="classpath*:mvc/mapper/*.xml"/>
+</bean>
+<!-- SqlSessionTemplate 설정 -->
+<bean id="ss" class="org.mybatis.spring.SqlSessionTemplate">
+<constructor-arg ref="factoryBean"/>
+</bean>
+
+
+
+<bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver"></bean>
+
+<bean id="viewResolver" class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+<property name="prefix" value="/WEB-INF/views/"/>
+<property name="suffix" value=".jsp"/>
+<property name="viewNames" value="jsp/*"/>
+</bean>
+
+<bean id="templateResolver"
+        class="org.thymeleaf.templateresolver.ServletContextTemplateResolver">
+        <property name="prefix" value="/WEB-INF/views/" />
+        <property name="suffix" value=".html" />
+        <property name="templateMode" value="HTML5" />
+<!--         <property name="cacheable" value="false" /> -->
+    </bean>
+ 
+    <bean id="templateEngine" class="org.thymeleaf.spring3.SpringTemplateEngine">
+        <property name="templateResolver" ref="templateResolver" />
+    </bean>
+ 
+    <bean class="org.thymeleaf.spring3.view.ThymeleafViewResolver">
+        <property name="characterEncoding" value="UTF-8" />
+        <property name="templateEngine" ref="templateEngine" />
+    </bean>
+
+
+
+<bean id="log" class="mvc.log.log"/>
+<aop:config proxy-target-class="true">
+	<aop:pointcut expression="execution(* mvc.service..*imple.*(..))" id="allPointcut"/>
+	
+	<aop:aspect ref="log">
+		<aop:before pointcut-ref="allPointcut" method="testprint"/>
+	</aop:aspect>
+	
+</aop:config>
+
+<mvc:interceptors>
+	<mvc:interceptor>
+		<mvc:mapping path="/**"/>
+		<bean class="mvc.interceptor.DefaultInterceptor"/>
+	</mvc:interceptor>
+</mvc:interceptors>
+
+
+</beans>
