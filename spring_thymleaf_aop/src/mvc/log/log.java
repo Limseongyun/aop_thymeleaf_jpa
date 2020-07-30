@@ -6,7 +6,7 @@ import org.slf4j.LoggerFactory;
 public class log {
 	private final Logger logger = LoggerFactory.getLogger(this.getClass());
 	public void testprint() {
-		//System.out.println("aop>>test log print");
+		//System.out.println("aop>>test log prinst");
 		logger.debug("aop>>test log print");
 	}
 }
